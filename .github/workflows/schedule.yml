@@ -1,0 +1,38 @@
+name: Daily Coin Flip Option Trade
+
+on:
+  schedule:
+    - cron: '40 13 * * 1-5'  # Runs at 9:40 AM EST weekdays
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run dashboard script
+        run: python generate_dashboard.py
+
+      - name: Commit and push updated dashboard
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add data/*.csv docs/index.html
+          git commit -m "Daily update" || echo "No changes to commit"
+          git push
